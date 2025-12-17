@@ -6,7 +6,7 @@ import { ArrowLeft, Link as LinkIcon, Twitter, Rss } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Site configuration
-const SITE_URL = "https://danielsimonjr.github.io/blog";
+const SITE_URL = "https://danielsimonjr.github.io/markdown-site";
 const SITE_NAME = "Daniel Simon Jr";
 const DEFAULT_OG_IMAGE = "/images/og-default.svg";
 
