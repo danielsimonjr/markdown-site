@@ -2,9 +2,16 @@ import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Copy, Check } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import { MermaidDiagram, GraphvizDiagram, TikZDiagram } from "./DiagramRenderers";
+
+// Import KaTeX CSS
+import "katex/dist/katex.min.css";
 
 // Copy button component for code blocks
 function CodeCopyButton({ code }: { code: string }) {
@@ -273,6 +280,13 @@ function getTextContent(children: React.ReactNode): string {
   return "";
 }
 
+// Diagram language identifiers
+const DIAGRAM_LANGUAGES = {
+  mermaid: ["mermaid"],
+  graphviz: ["dot", "graphviz"],
+  tikz: ["tikz", "latex-tikz"],
+};
+
 export default function BlogPost({ content }: BlogPostProps) {
   const { theme } = useTheme();
 
@@ -292,12 +306,29 @@ export default function BlogPost({ content }: BlogPostProps) {
   return (
     <article className="blog-post-content">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
+        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
         components={{
           code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
-            const isInline = !match && !className;
+            const language = match ? match[1] : "";
+            const codeString = String(children).replace(/\n$/, "");
 
+            // Check for diagram languages
+            if (DIAGRAM_LANGUAGES.mermaid.includes(language)) {
+              return <MermaidDiagram code={codeString} />;
+            }
+
+            if (DIAGRAM_LANGUAGES.graphviz.includes(language)) {
+              return <GraphvizDiagram code={codeString} />;
+            }
+
+            if (DIAGRAM_LANGUAGES.tikz.includes(language)) {
+              return <TikZDiagram code={codeString} />;
+            }
+
+            // Check if inline code
+            const isInline = !match && !className;
             if (isInline) {
               return (
                 <code className="inline-code" {...props}>
@@ -306,14 +337,14 @@ export default function BlogPost({ content }: BlogPostProps) {
               );
             }
 
-            const codeString = String(children).replace(/\n$/, "");
+            // Regular code block with syntax highlighting
             return (
               <div className="code-block-wrapper">
-                {match && <span className="code-language">{match[1]}</span>}
+                {match && <span className="code-language">{language}</span>}
                 <CodeCopyButton code={codeString} />
                 <SyntaxHighlighter
                   style={getCodeTheme()}
-                  language={match ? match[1] : "text"}
+                  language={language || "text"}
                   PreTag="div"
                 >
                   {codeString}

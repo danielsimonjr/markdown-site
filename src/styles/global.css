@@ -1137,3 +1137,144 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Diagram styles (Mermaid, Graphviz, TikZ) */
+.diagram-container {
+  margin: 24px 0;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.diagram-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mermaid specific styles */
+.mermaid-diagram {
+  background-color: var(--bg-primary);
+}
+
+/* Graphviz specific styles */
+.graphviz-diagram svg {
+  fill: var(--text-primary);
+}
+
+.graphviz-diagram text {
+  fill: var(--text-primary);
+}
+
+.graphviz-diagram path,
+.graphviz-diagram polygon {
+  stroke: var(--text-secondary);
+}
+
+/* TikZ specific styles */
+.tikz-diagram {
+  min-height: 100px;
+  position: relative;
+}
+
+.tikz-diagram.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagram-loading {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Diagram error styles */
+.diagram-error {
+  margin: 24px 0;
+  padding: 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid #e53e3e;
+  border-radius: 4px;
+}
+
+.diagram-error-title {
+  display: block;
+  font-weight: 500;
+  color: #e53e3e;
+  margin-bottom: 8px;
+}
+
+.diagram-error pre {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  font-family: SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, monospace;
+}
+
+.diagram-error details {
+  margin-top: 12px;
+}
+
+.diagram-error summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.diagram-error details pre {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: var(--code-bg);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* KaTeX math styles */
+.katex-display {
+  margin: 24px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 12px 0;
+}
+
+.katex {
+  font-size: 1.1em;
+}
+
+/* Inline math */
+.blog-post-content .math-inline {
+  padding: 0 2px;
+}
+
+/* Dark theme adjustments for diagrams */
+:root[data-theme="dark"] .mermaid-diagram {
+  background-color: #1e1e1e;
+}
+
+:root[data-theme="dark"] .graphviz-diagram svg polygon[fill="white"],
+:root[data-theme="dark"] .graphviz-diagram svg polygon[fill="#ffffff"] {
+  fill: #1e1e1e;
+}
+
+:root[data-theme="dark"] .graphviz-diagram svg ellipse[fill="none"] {
+  fill: #1e1e1e;
+}
+
+/* Responsive diagram styles */
+@media (max-width: 768px) {
+  .diagram-container {
+    padding: 12px;
+    margin: 16px 0;
+  }
+
+  .katex-display {
+    margin: 16px 0;
+  }
+}

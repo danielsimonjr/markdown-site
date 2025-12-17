@@ -11,6 +11,7 @@ A minimalist static markdown blog built with React, TypeScript, and Vite. Conten
 - Static site generation (no backend required)
 - SEO optimization (RSS, sitemap, Open Graph)
 - GitHub Pages deployment with GitHub Actions
+- Rich content support: LaTeX math, Mermaid diagrams, Graphviz/DOT, TikZ, SVG
 
 ## Tech Stack
 
@@ -134,6 +135,76 @@ slug: "about"
 published: true
 order: 1  # Nav display order
 ---
+```
+
+## Rich Content Features
+
+The site supports advanced markdown content including math, diagrams, and graphics.
+
+### LaTeX Math
+
+Use KaTeX for rendering mathematical equations:
+
+```markdown
+Inline math: $E = mc^2$
+
+Block math:
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
+### Mermaid Diagrams
+
+Create flowcharts, sequence diagrams, and more:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+````
+
+### Graphviz/DOT Diagrams
+
+Create graph visualizations using DOT language:
+
+````markdown
+```dot
+digraph G {
+    A -> B -> C;
+    B -> D;
+}
+```
+````
+
+Also accepts `graphviz` as the language identifier.
+
+### TikZ Diagrams
+
+Render LaTeX TikZ graphics (loads tikzjax from CDN):
+
+````markdown
+```tikz
+\begin{tikzpicture}
+    \draw (0,0) circle (1cm);
+    \draw (0,0) -- (1,0);
+\end{tikzpicture}
+```
+````
+
+Also accepts `latex-tikz` as the language identifier.
+
+### Inline SVG
+
+Raw SVG is supported via `rehype-raw`:
+
+```markdown
+<svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="blue" />
+</svg>
 ```
 
 ## Generated Files
