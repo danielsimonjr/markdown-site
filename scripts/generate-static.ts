@@ -7,7 +7,7 @@ const PAGES_DIR = path.join(process.cwd(), "content", "pages");
 const OUTPUT_DIR = path.join(process.cwd(), "public", "data");
 
 // Site configuration - update these for your site
-const SITE_URL = "https://danielsimonjr.github.io/blog";
+const SITE_URL = "https://danielsimonjr.github.io/markdown-site";
 const SITE_NAME = "Daniel Simon Jr";
 const SITE_DESCRIPTION = "Personal blog and projects";
 
