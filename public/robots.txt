@@ -1,11 +1,11 @@
-# robots.txt for Wayne Sutton's Blog
+# robots.txt for Daniel Simon Jr's Blog
 # https://www.robotstxt.org/
 
 User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://your-blog.netlify.app/sitemap.xml
+Sitemap: https://danielsimonjr.github.io/blog/sitemap.xml
 
 # AI and LLM crawlers
 User-agent: GPTBot

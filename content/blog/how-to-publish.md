@@ -1,20 +1,20 @@
 ---
 title: "How to Publish a Blog Post"
-description: "A quick guide to writing and publishing markdown blog posts using Cursor after your blog is set up."
+description: "A quick guide to writing and publishing markdown blog posts after your blog is set up."
 date: "2025-01-17"
 slug: "how-to-publish"
 published: true
-tags: ["tutorial", "markdown", "cursor", "publishing"]
+tags: ["tutorial", "markdown", "publishing"]
 readTime: "3 min read"
 ---
 
 # How to Publish a Blog Post
 
-Your blog is set up. Now you want to publish. This guide walks through writing a markdown post and syncing it to your live site using Cursor.
+Your blog is set up. Now you want to publish. This guide walks through writing a markdown post and deploying it to your live site.
 
 ## Create a New Post
 
-In Cursor, create a new file in `content/blog/`:
+Create a new file in `content/blog/`:
 
 ```
 content/blog/my-new-post.md
@@ -81,72 +81,46 @@ console.log(greeting);
 Wrap up your thoughts.
 ```
 
-## Sync to Convex
+## Build and Deploy
 
-Open Cursor's terminal and run:
-
-```bash
-npm run sync
-```
-
-This reads all markdown files in `content/blog/`, parses the frontmatter, and uploads them to your Convex database.
-
-You should see output like:
-
-```
-Syncing posts to Convex...
-Synced: my-new-post
-Done! Synced 1 post(s).
-```
-
-Your post is now live. No rebuild. No redeploy. The site updates in real time.
-
-## Publish to Production
-
-If you have separate dev and prod Convex deployments, sync to production.
-
-**First-time setup:** Create `.env.production.local` in your project root:
-
-```
-VITE_CONVEX_URL=https://your-prod-deployment.convex.cloud
-```
-
-Get your production URL from the [Convex Dashboard](https://dashboard.convex.dev) by selecting your project and switching to the Production deployment.
-
-**Sync to production:**
+Run the build command:
 
 ```bash
-npm run sync:prod
+npm run build
 ```
 
-### Environment Files
+This generates static JSON files from your markdown and builds the site.
 
-| File                    | Purpose                                      |
-| ----------------------- | -------------------------------------------- |
-| `.env.local`            | Dev deployment (created by `npx convex dev`) |
-| `.env.production.local` | Prod deployment (create manually)            |
+Then push to GitHub:
 
-Both files are gitignored.
+```bash
+git add .
+git commit -m "Add new post"
+git push
+```
 
-## Quick Workflow in Cursor
+GitHub Actions will automatically deploy your site.
+
+## Quick Workflow
 
 Here is the full workflow:
 
 1. **Create file**: `content/blog/my-post.md`
 2. **Add frontmatter**: Title, description, date, slug, published, tags
 3. **Write content**: Markdown with headings, lists, code blocks
-4. **Sync**: Run `npm run sync` in terminal
-5. **View**: Open your site and navigate to `/your-slug`
+4. **Build**: Run `npm run build`
+5. **Push**: Commit and push to GitHub
+6. **View**: Your post appears at `yourdomain.github.io/blog/your-slug`
 
 ## Tips
 
 **Draft posts**: Set `published: false` to save a post without showing it on the site.
 
-**Update existing posts**: Edit the markdown file and run `npm run sync` again. Changes appear instantly.
+**Update existing posts**: Edit the markdown file, rebuild, and push.
 
-**Delete posts**: Remove the markdown file from `content/blog/` and run sync. The post will be removed from the database.
+**Delete posts**: Remove the markdown file from `content/blog/`, rebuild, and push.
 
-**Unique slugs**: Each post needs a unique slug. The sync will fail if two posts share the same slug.
+**Unique slugs**: Each post needs a unique slug. The build will warn if two posts share the same slug.
 
 **Date format**: Use YYYY-MM-DD format for the date field.
 
@@ -166,16 +140,16 @@ image: "/images/my-post-og.png"
 
 ## Checking Your Post
 
-After syncing, verify your post:
+After building, verify your post:
 
-1. Open your local dev server: `http://localhost:5173`
+1. Run `npm run preview` to preview the production build
 2. Your post should appear in the post list
 3. Click through to check formatting
 4. Test code blocks and images render correctly
 
 ## Adding Static Pages
 
-You can also create static pages like About, Projects, or Contact. These appear as navigation links in the top right.
+You can also create static pages like About, Projects, or Contact. These appear as navigation links.
 
 1. Create a file in `content/pages/`:
 
@@ -196,7 +170,7 @@ order: 1
 Your page content here...
 ```
 
-3. Run `npm run sync`
+3. Run `npm run build`
 
 The page will appear in the navigation. Use `order` to control the display sequence (lower numbers appear first).
 
@@ -205,7 +179,7 @@ The page will appear in the navigation. Use `order` to control the display seque
 Publishing is three steps:
 
 1. Write markdown in `content/blog/` or `content/pages/`
-2. Run `npm run sync`
-3. Done
+2. Run `npm run build`
+3. Push to GitHub
 
-The Convex database updates immediately. Your site reflects changes in real time. No waiting for builds or deployments.
+GitHub Actions handles deployment automatically.
