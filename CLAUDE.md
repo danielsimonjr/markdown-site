@@ -4,20 +4,18 @@ This document provides guidance for AI assistants working with this codebase.
 
 ## Project Overview
 
-A minimalist markdown blog built with React, Convex, and Vite. Content is stored in markdown files, synced to a Convex database, and served via a React SPA with Netlify edge functions for SEO.
+A minimalist static markdown blog built with React, TypeScript, and Vite. Content is stored in markdown files, converted to JSON at build time, and deployed to GitHub Pages.
 
 **Key features:**
 - Markdown-based blog posts and static pages
-- Real-time data sync via Convex
-- Real-time analytics at `/stats`
+- Static site generation (no backend required)
 - SEO optimization (RSS, sitemap, Open Graph)
-- AI/LLM-friendly API endpoints
+- GitHub Pages deployment with GitHub Actions
 
 ## Tech Stack
 
 - **Frontend:** React 18, TypeScript, Vite
-- **Backend:** Convex (serverless database + functions)
-- **Hosting:** Netlify (with edge functions)
+- **Hosting:** GitHub Pages
 - **Styling:** CSS (global.css), no CSS framework
 - **Routing:** react-router-dom
 
@@ -28,45 +26,38 @@ markdown-site/
 ├── content/
 │   ├── blog/           # Markdown blog posts
 │   └── pages/          # Static pages (about, contact, etc.)
-├── convex/
-│   ├── _generated/     # Auto-generated Convex types (DO NOT EDIT)
-│   ├── schema.ts       # Database schema
-│   ├── posts.ts        # Post queries/mutations
-│   ├── pages.ts        # Page queries/mutations
-│   ├── stats.ts        # Analytics (page views, sessions)
-│   ├── http.ts         # HTTP endpoints (API, sitemap, RSS)
-│   ├── rss.ts          # RSS feed generation
-│   └── crons.ts        # Scheduled jobs
-├── netlify/
-│   └── edge-functions/ # Netlify edge proxies for Convex HTTP
+├── public/
+│   ├── data/           # Generated JSON files (posts, pages)
+│   ├── images/         # Static images
+│   ├── rss.xml         # Generated RSS feed
+│   ├── rss-full.xml    # Generated RSS with full content
+│   ├── sitemap.xml     # Generated sitemap
+│   ├── 404.html        # SPA fallback for GitHub Pages
+│   ├── robots.txt      # Crawler rules
+│   └── llms.txt        # AI agent discovery
 ├── scripts/
-│   └── sync-posts.ts   # Syncs markdown to Convex
+│   └── generate-static.ts  # Markdown to JSON generator
 ├── src/
 │   ├── components/     # React components
 │   ├── context/        # React contexts (ThemeContext)
-│   ├── hooks/          # Custom hooks (usePageTracking)
-│   ├── pages/          # Page components (Home, Post, Stats)
+│   ├── pages/          # Page components (Home, Post)
 │   └── styles/         # Global CSS
-└── public/             # Static assets (images, robots.txt, llms.txt)
+└── .github/
+    └── workflows/
+        └── deploy.yml  # GitHub Pages deployment
 ```
 
 ## Development Commands
 
 ```bash
-# Start Vite dev server
+# Start dev server (generates static data first)
 npm run dev
-
-# Start Convex dev backend (in separate terminal)
-npm run dev:convex
-
-# Sync markdown posts to development Convex
-npm run sync
-
-# Sync markdown posts to production Convex
-npm run sync:prod
 
 # Build for production
 npm run build
+
+# Generate static JSON/RSS/sitemap from markdown
+npm run generate
 
 # Type check
 npm run typecheck
@@ -74,8 +65,8 @@ npm run typecheck
 # Lint
 npm run lint
 
-# Deploy Convex functions + sync to production
-npm run deploy:prod
+# Preview production build
+npm run preview
 ```
 
 ## Key Conventions
@@ -83,88 +74,31 @@ npm run deploy:prod
 ### TypeScript
 
 - Strict mode enabled
-- Use explicit return types for Convex functions
 - Prefix unused parameters with `_`
 - Target ES2020
-
-### Convex Functions
-
-**Always specify return types using validators:**
-
-```typescript
-export const myQuery = query({
-  args: { id: v.string() },
-  returns: v.union(v.object({...}), v.null()),  // Required
-  handler: async (ctx, args) => { ... }
-});
-```
-
-**Use idempotent mutations to avoid write conflicts:**
-
-```typescript
-export const heartbeat = mutation({
-  handler: async (ctx, args) => {
-    const existing = await ctx.db.query("table").withIndex(...).first();
-
-    // Early return if no update needed
-    if (existing && existing.value === args.value) {
-      return null;
-    }
-
-    // Only write when necessary
-    await ctx.db.patch(existing._id, { value: args.value });
-    return null;
-  },
-});
-```
-
-**Use indexes for efficient queries:**
-
-```typescript
-// In schema.ts
-posts: defineTable({...})
-  .index("by_slug", ["slug"])
-  .index("by_published", ["published"])
-```
 
 ### React Components
 
 - Functional components only
 - Use hooks for state and effects
-- Use refs to prevent duplicate mutation calls
-- Debounce rapid mutations (300-500ms for typing, 5s for heartbeats)
+- Fetch data from static JSON files using `fetch()`
 
-### Preventing Write Conflicts
+### Static Data Loading
 
-This is critical for Convex. Key patterns:
+Components fetch data from `/data/*.json` files generated at build time:
 
-1. **Backend idempotency:** Check if update is needed before writing
-2. **Frontend debouncing:** Use refs to track pending mutations
-3. **Event records pattern:** Use separate tables for high-frequency counters instead of incrementing a field
-4. **Indexed queries:** Always use indexes to minimize read scope
+```typescript
+// Example: fetching posts list
+useEffect(() => {
+  fetch(`${import.meta.env.BASE_URL}data/posts.json`)
+    .then((res) => res.json())
+    .then((data) => setPosts(data));
+}, []);
+```
 
-See `.cursor/rules/convex-write-conflicts.mdc` for detailed patterns.
+### Base Path
 
-## Database Schema
-
-Located in `convex/schema.ts`:
-
-| Table | Purpose |
-|-------|---------|
-| `posts` | Blog posts with content, metadata |
-| `pages` | Static pages (about, contact) |
-| `pageViews` | Analytics events (event records pattern) |
-| `activeSessions` | Real-time visitor tracking |
-| `viewCounts` | Legacy view counters |
-| `siteConfig` | Key-value site settings |
-
-## Environment Variables
-
-| Variable | File | Purpose |
-|----------|------|---------|
-| `VITE_CONVEX_URL` | `.env.local` | Development Convex URL |
-| `VITE_CONVEX_URL` | `.env.production.local` | Production Convex URL |
-| `CONVEX_DEPLOY_KEY` | Netlify dashboard | Deploy key for CI |
+The site deploys to `/blog/` subdirectory on GitHub Pages. Use `import.meta.env.BASE_URL` for all asset and data paths.
 
 ## Content Workflow
 
@@ -187,9 +121,7 @@ image: "/images/og-image.png"  # Optional
 Your content here...
 ```
 
-2. Sync to Convex:
-   - Development: `npm run sync`
-   - Production: `npm run sync:prod`
+2. Run `npm run build` or `npm run dev` to regenerate static data
 
 ### Writing Static Pages
 
@@ -204,96 +136,98 @@ order: 1  # Nav display order
 ---
 ```
 
-## API Endpoints
+## Generated Files
 
-| Endpoint | Description |
-|----------|-------------|
-| `/api/posts` | JSON list of all published posts |
-| `/api/post?slug=xxx` | Single post as JSON |
-| `/api/post?slug=xxx&format=md` | Single post as markdown |
-| `/rss.xml` | RSS feed (descriptions only) |
-| `/rss-full.xml` | RSS feed (full content) |
-| `/sitemap.xml` | Dynamic XML sitemap |
-| `/meta/post?slug=xxx` | Open Graph HTML for crawlers |
-| `/stats` | Real-time analytics page |
+The `npm run generate` script creates:
 
-## Netlify Edge Functions
+| File | Description |
+|------|-------------|
+| `public/data/posts.json` | List of all posts (metadata only) |
+| `public/data/posts/{slug}.json` | Individual post with full content |
+| `public/data/pages.json` | List of all pages (metadata only) |
+| `public/data/pages/{slug}.json` | Individual page with full content |
+| `public/rss.xml` | RSS feed (descriptions only) |
+| `public/rss-full.xml` | RSS feed (full content) |
+| `public/sitemap.xml` | XML sitemap |
 
-Edge functions in `netlify/edge-functions/` proxy requests to Convex HTTP endpoints:
+## Static Assets
 
-- `rss.ts` - Proxies `/rss.xml` and `/rss-full.xml`
-- `sitemap.ts` - Proxies `/sitemap.xml`
-- `api.ts` - Proxies `/api/*` endpoints
-- `botMeta.ts` - Serves OG meta tags to crawlers
-
-**Important:** Edge functions require `VITE_CONVEX_URL` in Netlify environment variables.
+| Path | Description |
+|------|-------------|
+| `/blog/rss.xml` | RSS feed |
+| `/blog/rss-full.xml` | RSS feed with full content |
+| `/blog/sitemap.xml` | XML sitemap |
+| `/blog/llms.txt` | AI agent discovery |
+| `/blog/robots.txt` | Crawler rules |
 
 ## Testing
 
-No automated test suite currently. Manual testing workflow:
+Manual testing workflow:
 
-1. Run `npm run dev` and `npm run dev:convex`
-2. Verify posts display at `http://localhost:5173`
-3. Check `/stats` for analytics
-4. Run `npm run typecheck` before committing
-5. Run `npm run lint` to check for issues
+1. Run `npm run dev`
+2. Open http://localhost:5173/blog/
+3. Verify posts display correctly
+4. Test navigation between pages
+5. Run `npm run typecheck` before committing
+6. Run `npm run lint` to check for issues
 
 ## Deployment
 
-### Netlify Auto-Deploy
+### GitHub Pages (Automatic)
 
-Push to main branch triggers:
-1. `npm ci --include=dev` (install deps including devDeps)
-2. `npx convex deploy` (deploy Convex functions)
-3. `npm run build` (build Vite app)
+Push to `main` branch triggers automatic deployment via GitHub Actions.
 
-### Manual Production Sync
+Setup:
+1. Go to repository Settings > Pages
+2. Set Source to "GitHub Actions"
+3. Push to main branch
 
-To update content without rebuilding:
+### Manual Build
+
 ```bash
-npm run sync:prod
+npm run build
 ```
+
+Built files will be in `dist/`.
 
 ## Common Tasks
 
 ### Add a new blog post
 
 1. Create `content/blog/my-post.md` with frontmatter
-2. Run `npm run sync` (dev) or `npm run sync:prod` (prod)
+2. Run `npm run build` or push to main
 
 ### Add a new static page
 
 1. Create `content/pages/my-page.md` with frontmatter
-2. Run sync command
+2. Run `npm run build` or push to main
 
-### Modify database schema
+### Update site configuration
 
-1. Edit `convex/schema.ts`
-2. Run `npm run dev:convex` to apply changes
-3. Update related queries/mutations in `convex/*.ts`
+Edit these files:
+- `scripts/generate-static.ts` - `SITE_URL`, `SITE_NAME` constants
+- `src/pages/Home.tsx` - `siteConfig` object
+- `src/pages/Post.tsx` - `SITE_URL`, `SITE_NAME` constants
+- `index.html` - meta tags and JSON-LD
 
-### Add a new Convex function
+### Change base path
 
-1. Add to appropriate file in `convex/`
-2. Export with `query`, `mutation`, or `httpAction`
-3. Always include `returns` validator
-4. Use indexes for queries
-
-### Fix write conflicts
-
-1. Check Convex dashboard for affected mutations
-2. Add idempotency checks (early returns)
-3. Add frontend debouncing with refs
-4. Consider event records pattern for high-frequency updates
+1. Update `base` in `vite.config.ts`
+2. Update paths in `index.html`
+3. Update `basePath` in `src/main.tsx`
+4. Update `public/404.html`
 
 ## Files to Never Edit
 
-- `convex/_generated/*` - Auto-generated by Convex
+- `public/data/*` - Generated by build script
+- `public/rss.xml` - Generated by build script
+- `public/sitemap.xml` - Generated by build script
 - `dist/*` - Build output
 - `node_modules/*`
 
-## Important Documentation
+## Important Files
 
 - `README.md` - User-facing documentation
-- `prds/howtoavoidwriteconflicts.md` - Write conflict resolution guide
-- `.cursor/rules/convex-write-conflicts.mdc` - Convex best practices rules
+- `scripts/generate-static.ts` - Static site generator
+- `vite.config.ts` - Vite configuration with base path
+- `.github/workflows/deploy.yml` - GitHub Actions deployment

@@ -1,25 +1,18 @@
 # llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
 
-> This is an open source markdown blog powered by Convex and Netlify. Fork it, customize it, ship it.
+> Personal blog by Daniel Simon Jr. A static markdown blog built with React and deployed on GitHub Pages.
 
 # Site Information
-- Name: Markdown Blog
-- URL: https://your-blog.netlify.app
-- Description: Real-time markdown blog with Convex backend and Netlify deployment.
-- Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source
+- Name: Daniel Simon Jr
+- URL: https://danielsimonjr.github.io/blog
+- Description: Personal blog and projects
+- Topics: Markdown, React, TypeScript, GitHub Pages
 
 # Content Access
-- RSS Feed: /rss.xml (all posts with descriptions)
-- Full RSS: /rss-full.xml (all posts with full content)
-- Markdown API: /api/posts (JSON list of all posts)
-- Single Post Markdown: /api/post?slug={slug} (full markdown content)
-- Sitemap: /sitemap.xml
-
-# How to Use This Site
-1. Fetch /api/posts for a list of all published posts
-2. Use /api/post?slug={slug} to get full markdown content of any post
-3. Subscribe to /rss-full.xml for complete article content
+- RSS Feed: /blog/rss.xml (all posts with descriptions)
+- Full RSS: /blog/rss-full.xml (all posts with full content)
+- Sitemap: /blog/sitemap.xml
 
 # Permissions
 - AI assistants may read and summarize content from this site
@@ -27,5 +20,4 @@
 - Please link back to original articles when citing
 
 # Links
-- Convex: https://convex.dev
-- Netlify: https://netlify.com
+- GitHub: https://github.com/danielsimonjr

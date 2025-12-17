@@ -1,22 +1,31 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import "./styles/global.css";
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+// Handle SPA redirect from 404.html on GitHub Pages
+const redirect = sessionStorage.getItem("redirect");
+if (redirect) {
+  sessionStorage.removeItem("redirect");
+  // Extract the path after /blog/
+  const basePath = "/blog";
+  if (redirect.startsWith(basePath)) {
+    const path = redirect.slice(basePath.length) || "/";
+    window.history.replaceState(null, "", path);
+  }
+}
+
+// Get base path from Vite config (for GitHub Pages /blog subdirectory)
+const basename = import.meta.env.BASE_URL;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ConvexProvider client={convex}>
-      <BrowserRouter>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </BrowserRouter>
-    </ConvexProvider>
+    <BrowserRouter basename={basename}>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
-
