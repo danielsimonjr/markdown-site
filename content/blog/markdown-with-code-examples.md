@@ -33,41 +33,44 @@ readTime: "5 min read"
 ### TypeScript
 
 ```typescript
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+interface Post {
+  slug: string;
+  title: string;
+  description: string;
+  content: string;
+  date: string;
+  tags: string[];
+}
 
-export const getPosts = query({
-  args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("posts"),
-      title: v.string(),
-      slug: v.string(),
-    }),
-  ),
-  handler: async (ctx) => {
-    return await ctx.db.query("posts").collect();
-  },
-});
+async function fetchPosts(): Promise<Post[]> {
+  const response = await fetch("/data/posts.json");
+  return response.json();
+}
 ```
 
 ### React Component
 
 ```tsx
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { useState, useEffect } from "react";
+
+interface Post {
+  slug: string;
+  title: string;
+}
 
 export function PostList() {
-  const posts = useQuery(api.posts.getPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
 
-  if (posts === undefined) {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    fetch("/data/posts.json")
+      .then((res) => res.json())
+      .then((data) => setPosts(data));
+  }, []);
 
   return (
     <ul>
       {posts.map((post) => (
-        <li key={post._id}>
+        <li key={post.slug}>
           <a href={`/${post.slug}`}>{post.title}</a>
         </li>
       ))}
@@ -85,14 +88,11 @@ npm install
 # Start development server
 npm run dev
 
-# Sync posts to Convex (development)
-npm run sync
+# Build for production
+npm run build
 
-# Sync posts to Convex (production)
-npm run sync:prod
-
-# Deploy to production
-npm run deploy
+# Preview production build
+npm run preview
 ```
 
 ### JSON
@@ -102,44 +102,43 @@ npm run deploy
   "name": "markdown-blog",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "sync": "npx ts-node scripts/sync-posts.ts"
+    "dev": "npm run generate && vite",
+    "build": "npm run generate && vite build",
+    "generate": "npx tsx scripts/generate-static.ts"
   }
 }
 ```
 
 ## Inline Code
 
-Use backticks for inline code like `npm install` or `useQuery`.
+Use backticks for inline code like `npm install` or `useState`.
 
-Reference files with inline code: `convex/schema.ts`, `src/pages/Home.tsx`.
+Reference files with inline code: `scripts/generate-static.ts`, `src/pages/Home.tsx`.
 
 ## Tables
 
-| Command              | Description                    |
-| -------------------- | ------------------------------ |
-| `npm run dev`        | Start development server       |
-| `npm run build`      | Build for production           |
-| `npm run sync`       | Sync markdown to Convex (dev)  |
-| `npm run sync:prod`  | Sync markdown to Convex (prod) |
-| `npx convex dev`     | Start Convex dev server        |
+| Command           | Description                |
+| ----------------- | -------------------------- |
+| `npm run dev`     | Start development server   |
+| `npm run build`   | Build for production       |
+| `npm run generate`| Generate static JSON       |
+| `npm run preview` | Preview production build   |
 
 ## Lists
 
 ### Unordered
 
 - Write posts in markdown
-- Store in Convex database
-- Deploy to Netlify
-- Updates sync in real-time
+- Build generates static JSON
+- Deploy to GitHub Pages
+- Updates deploy automatically
 
 ### Ordered
 
 1. Fork the repository
-2. Set up Convex backend
-3. Configure Netlify
-4. Start writing
+2. Customize your site
+3. Write your posts
+4. Push to deploy
 
 ## Blockquotes
 
@@ -147,7 +146,7 @@ Reference files with inline code: `convex/schema.ts`, `src/pages/Home.tsx`.
 
 ## Links
 
-External links open in new tabs: [Convex Docs](https://docs.convex.dev)
+External links: [GitHub Pages Docs](https://docs.github.com/en/pages)
 
 Internal links: [Setup Guide](/setup-guide)
 
@@ -161,10 +160,10 @@ Use **bold** for strong emphasis and _italics_ for lighter emphasis.
 
 ## Images
 
-Place images in `public/` and reference them:
+Place images in `public/images/` and reference them:
 
 ```markdown
-![Alt text](/image.png)
+![Alt text](/images/screenshot.png)
 ```
 
 ## File Structure Reference
@@ -181,5 +180,5 @@ content/blog/
 
 1. Keep slugs URL-friendly (lowercase, hyphens)
 2. Set `published: false` for drafts
-3. Run `npm run sync` after adding posts (or `npm run sync:prod` for production)
+3. Run `npm run build` after adding posts
 4. Use descriptive titles for SEO

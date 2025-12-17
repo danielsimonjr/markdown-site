@@ -7,37 +7,23 @@ order: 3
 
 You found the contact page. Nice.
 
-## The technical way
+## Get in touch
 
-This site runs on Convex, which means every page view is a live subscription to the database. You are not reading cached HTML. You are reading data that synced moments ago.
+The best way to reach out is to open an issue on GitHub. You can also find me on social media.
 
-If you want to reach out, here is an idea: fork this repo, add a contact form, wire it to a Convex mutation, and deploy. Your message will hit the database in under 100ms. No email server required.
+## About this site
 
-```typescript
-// A contact form mutation looks like this
-export const submitContact = mutation({
-  args: {
-    name: v.string(),
-    email: v.string(),
-    message: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.insert("messages", {
-      ...args,
-      createdAt: Date.now(),
-    });
-  },
-});
-```
+This is a static site hosted on GitHub Pages. There's no backend database or server - just static files served from a CDN.
 
-## The human way
+If you want to add a contact form, you could integrate with a service like Formspree or build your own serverless function.
 
-Open an issue on GitHub. Or find the author on X. Or send a carrier pigeon. Convex does not support those yet, but the team is probably working on it.
+## Why static?
 
-## Why Convex
+Static sites are:
 
-Traditional backends make you write API routes, manage connections, handle caching, and pray nothing breaks at 3am. Convex handles all of that. You write functions. They run in the cloud. Data syncs to clients. Done.
+- **Fast** - No server processing, content served directly from CDN
+- **Secure** - No database to hack, no server to exploit
+- **Free** - GitHub Pages hosting costs nothing
+- **Simple** - Just HTML, CSS, and JavaScript
 
-The contact form example above is the entire backend. No Express. No database drivers. No WebSocket setup. Just a function that inserts a row.
-
-That is why this site uses Convex.
+The trade-off is no dynamic features out of the box. But for a blog, that's usually fine.

@@ -5,29 +5,25 @@ published: true
 order: 0
 ---
 
-Reference documentation for setting up, customizing, and deploying this markdown site.
+Reference documentation for setting up, customizing, and deploying this markdown blog.
 
-**How publishing works:** Write posts in markdown, run `npm run sync` for development or `npm run sync:prod` for production, and they appear on your live site immediately. No rebuild or redeploy needed. Convex handles real-time data sync, so connected browsers update automatically.
+**How publishing works:** Write posts in markdown, run `npm run build`, push to GitHub, and your site deploys automatically via GitHub Actions.
 
 ## Quick start
 
 ```bash
-git clone https://github.com/waynesutton/markdown-site.git
+git clone https://github.com/danielsimonjr/markdown-site.git
 cd markdown-site
 npm install
-npx convex dev
-npm run sync          # development
-npm run sync:prod     # production
 npm run dev
 ```
 
-Open `http://localhost:5173` to view locally.
+Open `http://localhost:5173/blog/` to view locally.
 
 ## Requirements
 
 - Node.js 18+
-- Convex account (free at convex.dev)
-- Netlify account (free at netlify.com)
+- GitHub account
 
 ## Project structure
 
@@ -36,28 +32,22 @@ markdown-site/
 ├── content/
 │   ├── blog/           # Blog posts (.md)
 │   └── pages/          # Static pages (.md)
-├── convex/
-│   ├── schema.ts       # Database schema
-│   ├── posts.ts        # Post queries/mutations
-│   ├── pages.ts        # Page queries/mutations
-│   ├── http.ts         # API endpoints
-│   └── rss.ts          # RSS generation
-├── netlify/
-│   └── edge-functions/ # Netlify edge functions
-│       ├── rss.ts      # RSS proxy
-│       ├── sitemap.ts  # Sitemap proxy
-│       ├── api.ts      # API proxy
-│       └── botMeta.ts  # OG crawler detection
+├── public/
+│   ├── data/           # Generated JSON (by build)
+│   ├── images/         # Static images
+│   ├── rss.xml         # Generated RSS
+│   ├── sitemap.xml     # Generated sitemap
+│   └── 404.html        # SPA fallback
+├── scripts/
+│   └── generate-static.ts  # Build script
 ├── src/
 │   ├── components/     # React components
 │   ├── context/        # Theme context
 │   ├── pages/          # Route components
 │   └── styles/         # CSS
-├── public/
-│   ├── images/         # Static images
-│   ├── robots.txt      # Crawler rules
-│   └── llms.txt        # AI discovery
-└── netlify.toml        # Deployment config
+└── .github/
+    └── workflows/
+        └── deploy.yml  # GitHub Actions
 ```
 
 ## Content
@@ -114,15 +104,13 @@ Content here...
 | `published` | Yes      | `true` to show            |
 | `order`     | No       | Nav order (lower = first) |
 
-### Syncing content
+### Building content
 
 ```bash
-# Development
-npm run sync
-
-# Production
-npm run sync:prod
+npm run build
 ```
+
+This generates static JSON files and builds the production site.
 
 ## Configuration
 
@@ -140,7 +128,7 @@ const siteConfig = {
   featuredEssays: [{ title: "Post Title", slug: "post-slug" }],
   links: {
     docs: "/docs",
-    convex: "https://convex.dev",
+    github: "https://github.com/...",
   },
 };
 ```
@@ -162,8 +150,7 @@ Edit `src/styles/global.css`:
 ```css
 body {
   /* Sans-serif */
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Serif (default) */
   font-family: "New York", ui-serif, Georgia, serif;
@@ -179,103 +166,36 @@ body {
 | Default OG image | `public/images/og-default.svg` | 1200x630 |
 | Post images      | `public/images/`               | Any      |
 
-## Real-time stats
+## Static assets
 
-The `/stats` page displays real-time analytics:
-
-- Active visitors (with per-page breakdown)
-- Total page views
-- Unique visitors
-- Views by page (sorted by count)
-
-All stats update automatically via Convex subscriptions.
-
-## API endpoints
-
-| Endpoint                       | Description             |
-| ------------------------------ | ----------------------- |
-| `/stats`                       | Real-time analytics     |
-| `/rss.xml`                     | RSS feed (descriptions) |
-| `/rss-full.xml`                | RSS feed (full content) |
-| `/sitemap.xml`                 | XML sitemap             |
-| `/api/posts`                   | JSON post list          |
-| `/api/post?slug=xxx`           | Single post (JSON)      |
-| `/api/post?slug=xxx&format=md` | Single post (markdown)  |
+| Path            | Description             |
+| --------------- | ----------------------- |
+| `/rss.xml`      | RSS feed (descriptions) |
+| `/rss-full.xml` | RSS feed (full content) |
+| `/sitemap.xml`  | XML sitemap             |
+| `/llms.txt`     | AI agent discovery      |
+| `/robots.txt`   | Crawler rules           |
 
 ## Deployment
 
-### Netlify setup
+### GitHub Pages setup
 
-1. Connect GitHub repo to Netlify
-2. Build command: `npm ci --include=dev && npx convex deploy --cmd 'npm run build'`
-3. Publish directory: `dist`
-4. Add env variables:
-   - `CONVEX_DEPLOY_KEY` (from Convex Dashboard > Project Settings > Deploy Key)
-   - `VITE_CONVEX_URL` (your production Convex URL, e.g., `https://your-deployment.convex.cloud`)
+1. Go to repository Settings > Pages
+2. Set Source to "GitHub Actions"
+3. Push to main branch
 
-Both are required: deploy key for builds, URL for edge function runtime.
-
-### Convex production
-
-```bash
-npx convex deploy
-```
-
-### Edge functions
-
-RSS, sitemap, and API routes are handled by Netlify Edge Functions in `netlify/edge-functions/`. They dynamically read `VITE_CONVEX_URL` from the environment. No manual URL configuration needed.
-
-## Convex schema
-
-```typescript
-// convex/schema.ts
-export default defineSchema({
-  posts: defineTable({
-    slug: v.string(),
-    title: v.string(),
-    description: v.string(),
-    content: v.string(),
-    date: v.string(),
-    published: v.boolean(),
-    tags: v.array(v.string()),
-    readTime: v.optional(v.string()),
-    image: v.optional(v.string()),
-    lastSyncedAt: v.number(),
-  })
-    .index("by_slug", ["slug"])
-    .index("by_published", ["published"]),
-
-  pages: defineTable({
-    slug: v.string(),
-    title: v.string(),
-    content: v.string(),
-    published: v.boolean(),
-    order: v.optional(v.number()),
-    lastSyncedAt: v.number(),
-  })
-    .index("by_slug", ["slug"])
-    .index("by_published", ["published"]),
-});
-```
+GitHub Actions will automatically build and deploy.
 
 ## Troubleshooting
 
 **Posts not appearing**
 
 - Check `published: true` in frontmatter
-- Run `npm run sync` for development
-- Run `npm run sync:prod` for production
-- Verify in Convex dashboard
-
-**RSS/Sitemap errors**
-
-- Verify `VITE_CONVEX_URL` is set in Netlify
-- Test Convex HTTP URL: `https://your-deployment.convex.site/rss.xml`
-- Check edge functions in `netlify/edge-functions/`
+- Run `npm run build` to regenerate
+- Check build output for errors
 
 **Build failures**
 
-- Verify `CONVEX_DEPLOY_KEY` is set in Netlify
-- Ensure `@types/node` is in devDependencies
-- Build command must include `--include=dev`
-- Check Node.js version (18+)
+- Run `npm run typecheck` for TypeScript errors
+- Run `npm run lint` for linting issues
+- Ensure Node.js version is 18+
