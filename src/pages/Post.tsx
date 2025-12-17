@@ -1,6 +1,4 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import BlogPost from "../components/BlogPost";
 import CopyPageDropdown from "../components/CopyPageDropdown";
 import { format, parseISO } from "date-fns";
@@ -8,17 +6,62 @@ import { ArrowLeft, Link as LinkIcon, Twitter, Rss } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Site configuration
-const SITE_URL = "https://markdowncms.netlify.app";
-const SITE_NAME = "Markdown Site";
+const SITE_URL = "https://danielsimonjr.github.io/blog";
+const SITE_NAME = "Daniel Simon Jr";
 const DEFAULT_OG_IMAGE = "/images/og-default.svg";
+
+interface Post {
+  slug: string;
+  title: string;
+  description: string;
+  content: string;
+  date: string;
+  tags: string[];
+  readTime: string;
+  image?: string;
+}
+
+interface Page {
+  slug: string;
+  title: string;
+  content: string;
+}
 
 export default function Post() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  // Check for page first, then post
-  const page = useQuery(api.pages.getPageBySlug, slug ? { slug } : "skip");
-  const post = useQuery(api.posts.getPostBySlug, slug ? { slug } : "skip");
+  const [post, setPost] = useState<Post | null | undefined>(undefined);
+  const [page, setPage] = useState<Page | null | undefined>(undefined);
   const [copied, setCopied] = useState(false);
+
+  // Fetch post or page data
+  useEffect(() => {
+    if (!slug) return;
+
+    const baseUrl = import.meta.env.BASE_URL;
+
+    // Try to fetch as a page first
+    fetch(`${baseUrl}data/pages/${slug}.json`)
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Not a page");
+      })
+      .then((data) => {
+        setPage(data);
+        setPost(null);
+      })
+      .catch(() => {
+        // Not a page, try as a post
+        setPage(null);
+        fetch(`${baseUrl}data/posts/${slug}.json`)
+          .then((res) => {
+            if (res.ok) return res.json();
+            throw new Error("Not found");
+          })
+          .then((data) => setPost(data))
+          .catch(() => setPost(null));
+      });
+  }, [slug]);
 
   // Update page title for static pages
   useEffect(() => {
@@ -50,12 +93,12 @@ export default function Post() {
       dateModified: post.date,
       image: ogImage,
       author: {
-        "@type": "Organization",
+        "@type": "Person",
         name: SITE_NAME,
         url: SITE_URL,
       },
       publisher: {
-        "@type": "Organization",
+        "@type": "Person",
         name: SITE_NAME,
       },
       mainEntityOfPage: {
@@ -118,7 +161,7 @@ export default function Post() {
     };
   }, [post, page]);
 
-  // Return null during initial load to avoid flash (Convex data arrives quickly)
+  // Return null during initial load
   if (page === undefined || post === undefined) {
     return null;
   }
@@ -179,7 +222,7 @@ export default function Post() {
     const url = encodeURIComponent(window.location.href);
     window.open(
       `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
-      "_blank",
+      "_blank"
     );
   };
 
@@ -239,7 +282,7 @@ export default function Post() {
               <span>Tweet</span>
             </button>
             <a
-              href="/rss.xml"
+              href={`${import.meta.env.BASE_URL}rss.xml`}
               target="_blank"
               rel="noopener noreferrer"
               className="share-button"

@@ -28,5 +28,8 @@ dist-ssr
 .env.local
 .env.*.local
 
-# Cursor rules
-.cursor/rules/write.mdc
+# Generated static data (regenerated at build time)
+public/data/
+public/rss.xml
+public/rss-full.xml
+public/sitemap.xml

@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 
 interface Post {
-  _id: string;
   slug: string;
   title: string;
   description: string;
@@ -46,7 +45,7 @@ export default function PostList({ posts }: PostListProps) {
           <h2 className="year-heading">{year}</h2>
           <ul className="posts">
             {groupedPosts[year].map((post) => (
-              <li key={post._id} className="post-item">
+              <li key={post.slug} className="post-item">
                 <Link to={`/${post.slug}`} className="post-link">
                   <span className="post-title">{post.title}</span>
                   <span className="post-meta">
@@ -66,4 +65,3 @@ export default function PostList({ posts }: PostListProps) {
     </div>
   );
 }
-

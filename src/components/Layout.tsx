@@ -1,16 +1,27 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import ThemeToggle from "./ThemeToggle";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+interface PageMeta {
+  slug: string;
+  title: string;
+  order?: number;
+}
+
 export default function Layout({ children }: LayoutProps) {
-  // Fetch published pages for navigation
-  const pages = useQuery(api.pages.getAllPages);
+  const [pages, setPages] = useState<PageMeta[]>([]);
+
+  useEffect(() => {
+    // Fetch pages from static JSON
+    fetch(`${import.meta.env.BASE_URL}data/pages.json`)
+      .then((res) => res.json())
+      .then((data) => setPages(data))
+      .catch(() => setPages([]));
+  }, []);
 
   return (
     <div className="layout">
