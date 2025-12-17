@@ -9,15 +9,15 @@ import "./styles/global.css";
 const redirect = sessionStorage.getItem("redirect");
 if (redirect) {
   sessionStorage.removeItem("redirect");
-  // Extract the path after /markdown-site/
-  const basePath = "/markdown-site";
+  // Extract the path after /blog/
+  const basePath = "/blog";
   if (redirect.startsWith(basePath)) {
     const path = redirect.slice(basePath.length) || "/";
     window.history.replaceState(null, "", path);
   }
 }
 
-// Get base path from Vite config (for GitHub Pages /markdown-site subdirectory)
+// Get base path from Vite config (for GitHub Pages /blog subdirectory)
 const basename = import.meta.env.BASE_URL;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
