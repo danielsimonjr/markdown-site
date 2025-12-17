@@ -6,6 +6,12 @@ A minimalist markdown blog built with React, TypeScript, and Vite. Deployed on G
 
 - Markdown-based blog posts with frontmatter
 - Syntax highlighting for code blocks
+- **Rich content support:**
+  - LaTeX math equations (KaTeX)
+  - Mermaid diagrams (flowcharts, sequence diagrams, etc.)
+  - Graphviz/DOT graph visualizations
+  - TikZ diagrams (LaTeX graphics)
+  - Inline SVG
 - Four theme options: Dark, Light, Tan (default), Cloud
 - Fully responsive design
 - Static site generation
@@ -107,6 +113,76 @@ const siteConfig = {
 
 Replace `public/favicon.svg` with your own icon.
 
+## Rich Content
+
+### LaTeX Math
+
+Write mathematical equations using KaTeX syntax:
+
+```markdown
+Inline math: $E = mc^2$
+
+Block math:
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
+### Mermaid Diagrams
+
+Create flowcharts, sequence diagrams, state diagrams, and more:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+````
+
+### Graphviz/DOT
+
+Create graph visualizations using DOT language:
+
+````markdown
+```dot
+digraph G {
+    rankdir=LR;
+    A -> B -> C;
+    B -> D;
+}
+```
+````
+
+Also supports `graphviz` as the language identifier.
+
+### TikZ Diagrams
+
+Render LaTeX TikZ graphics (loaded from tikzjax CDN):
+
+````markdown
+```tikz
+\begin{tikzpicture}
+    \draw[->] (0,0) -- (2,0) node[right] {$x$};
+    \draw[->] (0,0) -- (0,2) node[above] {$y$};
+    \draw (0,0) circle (1cm);
+\end{tikzpicture}
+```
+````
+
+Also supports `latex-tikz` as the language identifier.
+
+### Inline SVG
+
+Embed SVG graphics directly in markdown:
+
+```markdown
+<svg width="100" height="100" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="40" fill="currentColor" opacity="0.5" />
+</svg>
+```
+
 ## Development Commands
 
 | Command | Description |
@@ -204,8 +280,11 @@ const DEFAULT_THEME: Theme = "tan"; // Change to "dark", "light", or "cloud"
 - React 18
 - TypeScript
 - Vite
-- react-markdown
+- react-markdown with remark/rehype plugins
 - react-syntax-highlighter
+- KaTeX (math rendering)
+- Mermaid (diagrams)
+- @viz-js/viz (Graphviz)
 - date-fns
 - lucide-react
 
